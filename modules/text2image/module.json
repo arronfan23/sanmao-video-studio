@@ -1,0 +1,18 @@
+{
+  "id": "text2image",
+  "name": "文生图",
+  "version": "0.1.0",
+  "category": "generate",
+  "description": "seedream 文生图（同步返回），产物自动登记进素材库",
+  "inputs": [
+    { "name": "prompt", "type": "text", "label": "提示词", "required": true }
+  ],
+  "outputs": [
+    { "name": "image", "type": "image", "label": "图片" }
+  ],
+  "params": [
+    { "name": "model", "type": "model", "modality": "image", "label": "图像模型", "required": true },
+    { "name": "size", "type": "enum", "label": "尺寸", "options": ["2048x2048", "2304x1728", "1728x2304", "2560x1440", "1440x2560"], "default": "2048x2048" }
+  ],
+  "entry": "handler.js"
+}

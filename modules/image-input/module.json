@@ -1,0 +1,15 @@
+{
+  "id": "image-input",
+  "name": "图片",
+  "version": "0.1.0",
+  "category": "input",
+  "description": "导入一张本地图片作为工作流输入，可直接喂给图生视频等节点",
+  "inputs": [],
+  "outputs": [
+    { "name": "image", "type": "image", "label": "图片" }
+  ],
+  "params": [
+    { "name": "file", "type": "file", "accept": "image", "label": "图片文件", "required": true }
+  ],
+  "entry": "handler.js"
+}

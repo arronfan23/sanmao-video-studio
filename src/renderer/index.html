@@ -1,0 +1,187 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8" />
+  <meta http-equiv="Content-Security-Policy" content="default-src 'self'; style-src 'self' 'unsafe-inline'; img-src 'self' file: data:; media-src 'self' file:" />
+  <title>Sanmao Video Studio</title>
+  <link rel="stylesheet" href="styles.css" />
+</head>
+<body>
+  <div id="titlebar">
+    <span class="titlebar-brand">Sanmao Video Studio</span>
+    <div class="titlebar-controls">
+      <button id="win-min" title="最小化">−</button>
+      <button id="win-max" title="最大化/还原">▢</button>
+      <button id="win-close" title="关闭">×</button>
+    </div>
+  </div>
+  <div id="shell">
+    <aside id="sidebar">
+      <div class="brand">Sanmao Video Studio</div>
+      <nav>
+        <button class="nav-item active" data-view="pipeline">工作流</button>
+        <button class="nav-item" data-view="modules">模块库</button>
+        <button class="nav-item" data-view="tasks">任务中心 <span id="task-badge" class="badge hidden"></span></button>
+        <button class="nav-item" data-view="assets">素材库</button>
+        <button class="nav-item" data-view="settings">设置</button>
+      </nav>
+      <div id="arkcli-status" class="arkcli-status">检测 arkcli...</div>
+    </aside>
+    <main id="main">
+      <section id="view-pipeline" class="view active">
+        <div class="editor-topbar">
+          <input id="wf-name" class="wf-name" placeholder="未命名工作流" />
+          <select id="wf-load" class="wf-load"><option value="">打开...</option></select>
+          <button id="wf-save" class="btn">保存</button>
+          <button id="wf-new" class="btn">新建</button>
+          <button id="wf-delete" class="btn danger">删除</button>
+          <button id="run-pipeline" class="btn primary">运行</button>
+          <span id="run-status" class="run-status"></span>
+        </div>
+        <div class="editor-body">
+          <aside id="palette" class="palette">
+            <button id="group-new" class="btn palette-group-btn">新建分组</button>
+          </aside>
+          <div id="canvas-wrap" class="canvas-wrap">
+            <div id="canvas-content" class="canvas-content">
+              <div id="groups-layer" class="groups-layer"></div>
+              <svg id="edges-layer" class="edges-layer"></svg>
+              <div id="nodes-layer" class="nodes-layer"></div>
+            </div>
+            <div class="zoom-controls">
+              <button id="zoom-out" class="btn zoom-btn" title="缩小">−</button>
+              <span id="zoom-label">100%</span>
+              <button id="zoom-in" class="btn zoom-btn" title="放大">+</button>
+              <span class="zoom-sep"></span>
+              <label class="zoom-sens-label">灵敏度</label>
+              <select id="zoom-sens" class="zoom-sens">
+                <option value="1">1</option>
+                <option value="2">2</option>
+                <option value="3" selected>3</option>
+                <option value="4">4</option>
+                <option value="5">5</option>
+              </select>
+            </div>
+            <div id="canvas-hint" class="canvas-hint">从左侧模块面板拖入节点 · 中键拖动平移 · Ctrl+滚轮缩放</div>
+          </div>
+          <aside id="param-panel" class="param-panel">
+            <div class="empty-hint">选中一个节点查看参数</div>
+          </aside>
+        </div>
+      </section>
+      <section id="view-modules" class="view">
+        <header class="view-header"><h1>模块库</h1></header>
+        <div id="module-grid" class="module-grid"></div>
+      </section>
+      <section id="view-tasks" class="view">
+        <header class="view-header"><h1>任务中心</h1></header>
+        <div id="task-list" class="task-list"></div>
+      </section>
+      <section id="view-assets" class="view">
+        <header class="view-header">
+          <h1>素材库</h1>
+          <button id="assets-clear" class="btn danger">全部删除</button>
+        </header>
+        <div class="asset-columns">
+          <div class="asset-col">
+            <div class="asset-section-title">图片</div>
+            <div id="asset-col-image" class="asset-list"></div>
+          </div>
+          <div class="asset-col">
+            <div class="asset-section-title">视频</div>
+            <div id="asset-col-video" class="asset-list"></div>
+          </div>
+        </div>
+      </section>
+      <section id="view-settings" class="view">
+        <header class="view-header"><h1>设置</h1></header>
+        <div class="settings-columns">
+          <div class="settings-card">
+            <h2>LLM 服务（文本能力）</h2>
+            <div id="apikey-state" class="settings-line"></div>
+            <div class="field-row">
+              <label class="field-label">Base URL</label>
+              <input id="baseurl-input" type="text" placeholder="https://your-endpoint/v1" />
+            </div>
+            <div class="field-row">
+              <input id="apikey-input" type="password" placeholder="粘贴 API Key" />
+              <button id="apikey-toggle" class="btn" title="显示/隐藏">显示</button>
+            </div>
+            <div class="field-row">
+              <button id="apikey-save" class="btn primary">保存</button>
+              <button id="apikey-test" class="btn">测试连接</button>
+              <button id="apikey-clear" class="btn danger">清除</button>
+            </div>
+            <div id="apikey-test-result" class="settings-line"></div>
+            <div class="field-row">
+              <label class="field-label">默认文本模型</label>
+              <select id="text-model-select"></select>
+              <button id="models-refresh" class="btn" title="从端点拉取模型列表">刷新</button>
+            </div>
+            <div id="models-fetch-result" class="settings-line"></div>
+          </div>
+          <div class="settings-card">
+            <h2>arkcli 环境（生成能力）</h2>
+            <div id="arkcli-state" class="settings-line">检测中...</div>
+            <div class="field-row">
+              <button id="arkcli-recheck" class="btn">重新检测</button>
+              <button id="arkcli-login-btn" class="btn primary hidden">登录火山引擎</button>
+              <button id="arkcli-guide-btn" class="btn hidden">安装向导</button>
+            </div>
+            <div class="field-row">
+              <label class="field-label">计费通道</label>
+              <select id="profile-select"></select>
+            </div>
+            <div id="profile-hint" class="settings-line"></div>
+            <div id="arkcli-guide" class="install-guide hidden">
+              <p>1. 安装 Node.js LTS：<a href="#" onclick="return false;">nodejs.org</a>（安装后重开终端）</p>
+              <p>2. 在 PowerShell 中执行：</p>
+              <div class="cmd-row">
+                <code>npm install -g @volcengine/ark-cli</code>
+                <button id="copy-install-cmd" class="btn">复制</button>
+              </div>
+              <p>3. 安装完成后点击「重新检测」</p>
+            </div>
+            <div id="login-waiting" class="settings-line hidden">等待浏览器授权完成... <button id="login-done" class="btn">我已完成登录</button></div>
+          </div>
+          <div class="settings-card">
+            <h2>快捷键</h2>
+            <div class="settings-line">
+              <div><code>Delete</code> / <code>Esc</code>　删除选中的节点或连线</div>
+              <div><code>Ctrl+C</code> / <code>Ctrl+V</code>　复制 / 粘贴选中的节点</div>
+              <div><code>Ctrl</code> + 鼠标滚轮　缩放画布</div>
+              <div>画布左上角 <code>+</code> / <code>−</code>　缩放画布</div>
+              <div>点击连线后按键删除　断开连接</div>
+            </div>
+          </div>
+        </div>
+      </section>
+    </main>
+  </div>
+
+  <div id="onboarding" class="overlay hidden">
+    <div class="wizard">
+      <h2 id="wizard-title">环境检查</h2>
+      <div id="wizard-body" class="wizard-body"></div>
+      <div class="wizard-actions">
+        <button id="wizard-skip" class="btn">跳过</button>
+        <button id="wizard-next" class="btn primary">下一步</button>
+      </div>
+    </div>
+  </div>
+
+  <div id="confirm-modal" class="overlay hidden">
+    <div class="modal-card">
+      <div id="confirm-text" class="modal-text"></div>
+      <div class="modal-actions">
+        <button id="confirm-cancel" class="btn">取消</button>
+        <button id="confirm-ok" class="btn modal-danger">确认删除</button>
+      </div>
+    </div>
+  </div>
+
+  <script src="../shared/graph.js"></script>
+  <script src="canvas.js"></script>
+  <script src="app.js"></script>
+</body>
+</html>

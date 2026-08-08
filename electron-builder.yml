@@ -1,0 +1,19 @@
+appId: com.sanmaovideostudio.app
+productName: Sanmao Video Studio
+directories:
+  output: release
+files:
+  - src/**
+  - modules/**
+  - package.json
+asarUnpack:
+  - node_modules/@koromix/koffi-win32-x64/**
+win:
+  target:
+    - msi
+  artifactName: ${productName}-Setup-${version}.${ext}
+msi:
+  oneClick: false
+  perMachine: false
+  createDesktopShortcut: true
+  shortcutName: Sanmao Video Studio

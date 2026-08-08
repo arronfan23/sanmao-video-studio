@@ -1,0 +1,49 @@
+name: release
+
+on:
+  push:
+    tags:
+      - 'v*'
+
+jobs:
+  build-msi:
+    runs-on: windows-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 24
+          cache: npm
+
+      # GitHub runner 在国外，不需要 npmmirror 镜像
+      - name: Install dependencies
+        run: npm ci --no-audit --no-fund
+
+      - name: Build MSI
+        run: npm run dist
+
+      # ---- SignPath 代码签名（申请通过后取消注释，并配置 secrets） ----
+      # - name: Sign MSI with SignPath
+      #   uses: signpath/github-action-submit-signing-request@v1
+      #   with:
+      #     api-token: ${{ secrets.SIGNPATH_API_TOKEN }}
+      #     organization-id: ${{ secrets.SIGNPATH_ORG_ID }}
+      #     project-slug: sanmao-video-studio
+      #     signing-policy-slug: release-signing
+      #     artifact: release/Sanmao Video Studio-Setup-${{ github.ref_name }}.msi
+      #     wait-for-completion: true
+      #     output-artifact-directory: release/signed
+
+      - name: Upload MSI artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: msi
+          path: release/*.msi
+          retention-days: 14
+
+      - name: Create GitHub Release
+        uses: softprops/action-gh-release@v2
+        with:
+          files: release/*.msi
+          generate_release_notes: true

@@ -1,0 +1,23 @@
+{
+  "name": "sanmao-video-studio",
+  "productName": "Sanmao Video Studio",
+  "version": "0.1.0",
+  "description": "基于火山引擎 arkcli 的模块化视频工作流客户端",
+  "main": "src/main/index.js",
+  "license": "MIT",
+  "author": "Sanmao",
+  "scripts": {
+    "start": "electron .",
+    "test": "node tests/registry.test.js && node tests/engine.test.js && node tests/graph.test.js && node tests/credential.test.js && node tests/taskqueue.test.js",
+    "pack": "electron-builder --dir",
+    "dist": "electron-builder --win msi"
+  },
+  "devDependencies": {
+    "app-builder-bin": "^4.0.0",
+    "electron": "^43.3.0",
+    "electron-builder": "^24.13.3"
+  },
+  "dependencies": {
+    "koffi": "^3.1.4"
+  }
+}

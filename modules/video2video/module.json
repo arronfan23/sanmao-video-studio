@@ -1,0 +1,20 @@
+{
+  "id": "video2video",
+  "name": "视频生视频",
+  "version": "0.1.0",
+  "category": "generate",
+  "description": "以一段参考视频的运动/风格生成新视频（R2V），可接在「视频」模块之后",
+  "inputs": [
+    { "name": "video", "type": "video", "label": "源视频", "required": true },
+    { "name": "prompt", "type": "text", "label": "提示词", "required": false }
+  ],
+  "outputs": [
+    { "name": "video", "type": "video", "label": "视频" }
+  ],
+  "params": [
+    { "name": "model", "type": "model", "modality": "video", "label": "视频模型", "required": true },
+    { "name": "resolution", "type": "enum", "label": "分辨率", "options": ["480p", "720p", "1080p"], "default": "720p" },
+    { "name": "duration", "type": "number", "label": "时长(秒)", "min": 3, "max": 12, "default": 5 }
+  ],
+  "entry": "handler.js"
+}

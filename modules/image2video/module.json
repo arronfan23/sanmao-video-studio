@@ -1,0 +1,21 @@
+{
+  "id": "image2video",
+  "name": "图生视频",
+  "version": "0.1.0",
+  "category": "generate",
+  "description": "以首帧图（可选尾帧图）为参考生成视频，可接在文生图 / 图片模块之后",
+  "inputs": [
+    { "name": "firstImage", "type": "image", "label": "首帧图", "required": true },
+    { "name": "lastImage", "type": "image", "label": "尾帧图", "required": false },
+    { "name": "prompt", "type": "text", "label": "提示词", "required": false }
+  ],
+  "outputs": [
+    { "name": "video", "type": "video", "label": "视频" }
+  ],
+  "params": [
+    { "name": "model", "type": "model", "modality": "video", "label": "视频模型", "required": true },
+    { "name": "resolution", "type": "enum", "label": "分辨率", "options": ["480p", "720p", "1080p"], "default": "720p" },
+    { "name": "duration", "type": "number", "label": "时长(秒)", "min": 3, "max": 12, "default": 5 }
+  ],
+  "entry": "handler.js"
+}

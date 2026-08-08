@@ -1,0 +1,20 @@
+{
+  "id": "text2video",
+  "name": "文生视频",
+  "version": "0.1.0",
+  "category": "generate",
+  "description": "seedance 文生视频（异步任务，自动轮询到完成并下载产物）",
+  "inputs": [
+    { "name": "prompt", "type": "text", "label": "提示词", "required": true }
+  ],
+  "outputs": [
+    { "name": "video", "type": "video", "label": "视频" }
+  ],
+  "params": [
+    { "name": "model", "type": "model", "modality": "video", "label": "视频模型", "required": true },
+    { "name": "resolution", "type": "enum", "label": "分辨率", "options": ["480p", "720p", "1080p"], "default": "720p" },
+    { "name": "duration", "type": "number", "label": "时长(秒)", "min": 3, "max": 12, "default": 5 },
+    { "name": "ratio", "type": "enum", "label": "画幅", "options": ["adaptive", "16:9", "9:16", "1:1"], "default": "adaptive" }
+  ],
+  "entry": "handler.js"
+}

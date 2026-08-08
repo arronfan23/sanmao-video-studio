@@ -1,0 +1,21 @@
+{
+  "id": "prompt-assist",
+  "name": "提示词",
+  "version": "0.2.0",
+  "category": "assist",
+  "description": "提示词来源：原文直出手写内容，或用 AI 润色创意描述（走设置页的 LLM 端点），润色结果可编辑",
+  "inputs": [
+    { "name": "brief", "type": "text", "label": "创意描述", "required": false }
+  ],
+  "outputs": [
+    { "name": "prompt", "type": "text", "label": "提示词" }
+  ],
+  "params": [
+    { "name": "mode", "type": "enum", "label": "模式", "options": ["原文直出", "AI 润色"], "default": "原文直出" },
+    { "name": "brief", "type": "text", "label": "提示词内容", "required": false },
+    { "name": "prompt", "type": "text", "label": "润色结果（可编辑，非空时直接作为输出）", "required": false, "showIf": { "param": "mode", "equals": "AI 润色" } },
+    { "name": "style", "type": "enum", "label": "风格倾向", "options": ["电影感", "动漫", "写实", "商业广告"], "default": "电影感", "showIf": { "param": "mode", "equals": "AI 润色" } },
+    { "name": "model", "type": "model", "modality": "text", "label": "对话模型", "required": false, "showIf": { "param": "mode", "equals": "AI 润色" } }
+  ],
+  "entry": "handler.js"
+}

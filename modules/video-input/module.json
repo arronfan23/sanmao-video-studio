@@ -1,0 +1,15 @@
+{
+  "id": "video-input",
+  "name": "视频",
+  "version": "0.1.0",
+  "category": "input",
+  "description": "导入一段本地视频作为工作流输入，可喂给视频生视频 / 合成导出等节点",
+  "inputs": [],
+  "outputs": [
+    { "name": "video", "type": "video", "label": "视频" }
+  ],
+  "params": [
+    { "name": "file", "type": "file", "accept": "video", "label": "视频文件", "required": true }
+  ],
+  "entry": "handler.js"
+}

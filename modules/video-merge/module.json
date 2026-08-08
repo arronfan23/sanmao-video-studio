@@ -1,0 +1,17 @@
+{
+  "id": "video-merge",
+  "name": "合成导出",
+  "version": "0.1.0",
+  "category": "export",
+  "description": "把多段视频素材按顺序合成导出（框架期占位：后续接 ffmpeg / 剪映草稿）",
+  "inputs": [
+    { "name": "videos", "type": "video[]", "label": "视频列表", "required": true }
+  ],
+  "outputs": [
+    { "name": "merged", "type": "video", "label": "合成视频" }
+  ],
+  "params": [
+    { "name": "format", "type": "enum", "label": "导出格式", "options": ["mp4"], "default": "mp4" }
+  ],
+  "entry": "handler.js"
+}
