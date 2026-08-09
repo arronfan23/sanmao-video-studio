@@ -389,7 +389,7 @@ async function loadTasks() {
 }
 
 function renderTasks(list, tasks) {
-  if (!tasks.length) { list.innerHTML = '<div class="empty-hint">暂无任务</div>'; return; }
+  if (!tasks.length) { list.innerHTML = '<div class="empty-hint"><img src="assets/logo.png" class="empty-logo" alt="" />暂无任务</div>'; return; }
   list.innerHTML = tasks.map((t) => `
     <div class="task-row">
       <span class="status-pill ${t.status}">${t.status}</span>
@@ -416,7 +416,7 @@ function renderAssetColumn(elId, items, emptyText) {
   const col = document.getElementById(elId);
   col.innerHTML = '';
   if (!items.length) {
-    col.innerHTML = `<div class="empty-hint">${emptyText}</div>`;
+    col.innerHTML = `<div class="empty-hint"><img src="assets/logo.png" class="empty-logo" alt="" />${emptyText}</div>`;
     return;
   }
   // 列内按生成时间倒序，组内按工作流分组

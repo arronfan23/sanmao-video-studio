@@ -7,7 +7,9 @@
   --border: #2e333c;
   --text: #e8eaee;
   --text-dim: #9aa1ad;
-  --accent: #3b82f6;
+  --accent: #a8e6cf;
+  --accent-ink: #0b3d2e;
+  --teal: #00695c;
   --green: #22c55e;
   --red: #ef4444;
   --amber: #f59e0b;
@@ -81,7 +83,7 @@ body {
 .nav-item:active { transform: scale(0.97); }
 .nav-item.active { background: var(--panel-2); color: var(--text); }
 
-.badge { background: var(--accent); color: #fff; font-size: 11px; border-radius: 8px; padding: 1px 7px; margin-left: 4px; }
+.badge { background: var(--teal); color: #fff; font-size: 11px; border-radius: 8px; padding: 1px 7px; margin-left: 4px; }
 .hidden { display: none !important; }
 
 .arkcli-status {
@@ -133,9 +135,9 @@ body {
   transition: transform 0.12s ease, border-color 0.15s ease, background 0.15s ease, box-shadow 0.15s ease;
 }
 .btn:hover { border-color: var(--accent); }
-.btn:active { transform: scale(0.94); box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.18); }
-.btn.primary:hover { background: #2f74e8; }
-.btn.primary { background: var(--accent); border-color: var(--accent); color: #fff; }
+.btn:active { transform: scale(0.94); box-shadow: 0 0 0 3px rgba(168, 230, 207, 0.18); }
+.btn.primary:hover { background: #8fd8bd; }
+.btn.primary { background: var(--accent); border-color: var(--accent); color: var(--accent-ink); }
 .btn.danger:hover { border-color: var(--red); color: var(--red); }
 .btn:disabled { opacity: 0.5; cursor: not-allowed; }
 
@@ -233,26 +235,26 @@ textarea { resize: vertical; min-height: 60px; }
   position: absolute;
   border: 1.5px dashed rgba(154, 161, 173, 0.6);
   border-radius: 10px;
-  background: rgba(59, 130, 246, 0.05);
+  background: rgba(168, 230, 207, 0.05);
   transition: border-color 0.18s ease, box-shadow 0.18s ease, background 0.18s ease;
 }
 .wf-group:hover {
   border-color: rgba(232, 234, 238, 0.85);
-  background: rgba(59, 130, 246, 0.09);
-  box-shadow: inset 0 0 40px rgba(59, 130, 246, 0.06);
+  background: rgba(168, 230, 207, 0.09);
+  box-shadow: inset 0 0 40px rgba(168, 230, 207, 0.06);
 }
 .wf-group.selected {
   border-color: var(--accent);
   border-style: solid;
-  box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.15), inset 0 0 40px rgba(59, 130, 246, 0.08);
+  box-shadow: 0 0 0 3px rgba(168, 230, 207, 0.15), inset 0 0 40px rgba(168, 230, 207, 0.08);
 }
 .wf-group.drop-highlight {
   animation: groupPulse 0.7s ease-out;
   border-color: var(--accent);
 }
 @keyframes groupPulse {
-  0% { box-shadow: 0 0 0 0 rgba(59, 130, 246, 0.55); background: rgba(59, 130, 246, 0.18); }
-  100% { box-shadow: 0 0 0 22px rgba(59, 130, 246, 0); background: rgba(59, 130, 246, 0.05); }
+  0% { box-shadow: 0 0 0 0 rgba(168, 230, 207, 0.55); background: rgba(168, 230, 207, 0.18); }
+  100% { box-shadow: 0 0 0 22px rgba(168, 230, 207, 0); background: rgba(168, 230, 207, 0.05); }
 }
 .group-resize {
   position: absolute; right: 2px; bottom: 2px;
@@ -288,7 +290,7 @@ textarea { resize: vertical; min-height: 60px; }
 .wf-node.st-running { border-color: var(--accent); animation: pulse 1.2s ease-in-out infinite; }
 .wf-node.st-succeeded { border-color: var(--green); }
 .wf-node.st-failed { border-color: var(--red); }
-@keyframes pulse { 50% { box-shadow: 0 0 0 4px rgba(59, 130, 246, 0.25); } }
+@keyframes pulse { 50% { box-shadow: 0 0 0 4px rgba(168, 230, 207, 0.25); } }
 
 .wf-node-header {
   display: flex; align-items: center; gap: 8px;
@@ -382,12 +384,13 @@ textarea { resize: vertical; min-height: 60px; }
 .icon-btn { padding: 5px 8px; line-height: 0; }
 .palette-group-btn { width: 100%; margin-bottom: 12px; }
 .status-pill { font-size: 11px; padding: 2px 10px; border-radius: 10px; text-transform: uppercase; }
-.status-pill.running { background: rgba(59, 130, 246, 0.15); color: var(--accent); }
+.status-pill.running { background: rgba(168, 230, 207, 0.15); color: var(--accent); }
 .status-pill.succeeded { background: rgba(34, 197, 94, 0.15); color: var(--green); }
 .status-pill.failed { background: rgba(239, 68, 68, 0.15); color: var(--red); }
 .status-pill.pending { background: rgba(245, 158, 11, 0.15); color: var(--amber); }
 
 .empty-hint { color: var(--text-dim); padding: 30px 0; text-align: center; }
+.empty-logo { width: 64px; height: 64px; opacity: 0.3; border-radius: 14px; display: block; margin: 0 auto 10px; }
 
 /* ---------- 设置页 ---------- */
 .settings-columns { display: flex; gap: 16px; flex-wrap: wrap; max-width: 1100px; }
