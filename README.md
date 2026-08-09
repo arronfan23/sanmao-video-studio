@@ -1,5 +1,7 @@
 # Sanmao Video Studio
 
+<p align="center"><img src="src/renderer/assets/logo.png" width="120" alt="Sanmao Video Studio" /></p>
+
 基于火山引擎 arkcli 的模块化视频工作流客户端（Windows，可打包 MSI）。
 
 ## 安装（终端用户）
