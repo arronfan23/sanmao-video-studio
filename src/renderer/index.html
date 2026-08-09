@@ -126,13 +126,14 @@
             <div class="field-row">
               <button id="arkcli-recheck" class="btn">重新检测</button>
               <button id="arkcli-login-btn" class="btn primary hidden">登录火山引擎</button>
-              <button id="arkcli-guide-btn" class="btn hidden">安装向导</button>
+              <button id="arkcli-guide-btn" class="btn primary hidden">一键安装</button>
             </div>
             <div class="field-row">
               <label class="field-label">计费通道</label>
               <select id="profile-select"></select>
             </div>
             <div id="profile-hint" class="settings-line"></div>
+            <div id="install-log" class="install-log hidden"></div>
             <div id="arkcli-guide" class="install-guide hidden">
               <p>1. 安装 Node.js LTS：<a href="#" onclick="return false;">nodejs.org</a>（安装后重开终端）</p>
               <p>2. 在 PowerShell 中执行：</p>
@@ -153,6 +154,15 @@
               <div>画布左上角 <code>+</code> / <code>−</code>　缩放画布</div>
               <div>点击连线后按键删除　断开连接</div>
             </div>
+          </div>
+          <div class="settings-card">
+            <h2>关于</h2>
+            <div id="about-body" class="settings-line">加载中...</div>
+            <div class="field-row">
+              <button id="check-update" class="btn">检查更新</button>
+              <button id="copy-diagnostics" class="btn">复制诊断信息</button>
+            </div>
+            <div id="about-result" class="settings-line"></div>
           </div>
         </div>
       </section>

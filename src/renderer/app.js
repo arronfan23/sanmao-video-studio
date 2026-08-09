@@ -70,6 +70,15 @@ async function loadSettings() {
   // arkcli 分区
   renderArkcliCard(arkcli);
 
+  // 关于分区
+  const info = await api.appInfo();
+  document.getElementById('about-body').innerHTML = [
+    `Sanmao Video Studio <b>v${info.appVersion}</b>`,
+    `arkcli ${info.arkcli.installed ? `v${info.arkcli.version}` : '未安装'} · ${info.arkcli.loggedIn ? '已登录' : '未登录'}`,
+    `Electron ${info.electron} · Chromium ${info.chromium} · Node ${info.node}`,
+    `${info.platform}`,
+  ].join('<br>');
+
   // 计费通道（profile）选择
   const profileSel = document.getElementById('profile-select');
   const profileHint = document.getElementById('profile-hint');
@@ -246,8 +255,83 @@ document.getElementById('arkcli-recheck').addEventListener('click', async () => 
   renderArkcliCard(s);
 });
 
-document.getElementById('arkcli-guide-btn').addEventListener('click', () => {
-  document.getElementById('arkcli-guide').classList.toggle('hidden');
+document.getElementById('arkcli-guide-btn').addEventListener('click', async () => {
+  const btn = document.getElementById('arkcli-guide-btn');
+  const log = document.getElementById('install-log');
+  btn.disabled = true;
+  log.classList.remove('hidden');
+  log.innerHTML = '';
+  const off = api.onSetupProgress((p) => {
+    const line = document.createElement('div');
+    line.textContent = (p.status === 'done' ? '✓ ' : '… ') + p.detail
+      + (p.percent !== undefined && p.percent !== null ? ` ${p.percent}%` : '');
+    if (p.status === 'done') line.style.color = 'var(--green)';
+    log.appendChild(line);
+    log.scrollTop = log.scrollHeight;
+  });
+  try {
+    await api.setupInstallAll();
+    const s = await refreshArkcliStatus();
+    renderArkcliCard(s);
+  } catch (err) {
+    const line = document.createElement('div');
+    line.style.color = 'var(--red)';
+    line.textContent = `安装失败: ${err.message}`;
+    log.appendChild(line);
+    document.getElementById('arkcli-guide').classList.remove('hidden');
+  } finally {
+    off();
+    btn.disabled = false;
+  }
+});
+
+document.getElementById('check-update').addEventListener('click', async () => {
+  const result = document.getElementById('about-result');
+  const btn = document.getElementById('check-update');
+  btn.disabled = true;
+  result.textContent = '正在检查更新...';
+  result.style.color = 'var(--text-dim)';
+  try {
+    const r = await api.checkUpdate();
+    if (r.status === 'latest') {
+      result.textContent = `已是最新版本（v${r.current}）`;
+      result.style.color = 'var(--green)';
+      return;
+    }
+    const notes = r.notes ? `\n更新内容：${r.notes}` : '';
+    const ok = await showConfirm(`发现新版本 v${r.latest}（当前 v${r.current}）。${notes}\n现在下载并安装？`);
+    if (!ok) { result.textContent = '已取消更新'; return; }
+    const off = api.onUpdateProgress((p) => {
+      result.textContent = `下载更新包 v${r.latest}... ${p.percent}%`;
+    });
+    try {
+      const dl = await api.downloadUpdate({ msiUrl: r.msiUrl, version: r.latest });
+      result.textContent = '下载完成，即将启动安装（系统可能请求管理员权限）...';
+      await api.installUpdate({ path: dl.path });
+    } finally {
+      off();
+    }
+  } catch (err) {
+    result.textContent = err.message;
+    result.style.color = 'var(--red)';
+  } finally {
+    btn.disabled = false;
+  }
+});
+
+document.getElementById('copy-diagnostics').addEventListener('click', async () => {
+  const result = document.getElementById('about-result');
+  const info = await api.appInfo();
+  const text = [
+    `Sanmao Video Studio v${info.appVersion}`,
+    `arkcli: ${info.arkcli.installed ? `v${info.arkcli.version}` : 'not installed'} (${info.arkcli.loggedIn ? 'logged in' : 'not logged in'})`,
+    `Electron ${info.electron} / Chromium ${info.chromium} / Node ${info.node}`,
+    `OS: ${info.platform}`,
+    `time: ${new Date().toISOString()}`,
+  ].join('\n');
+  await navigator.clipboard.writeText(text);
+  result.textContent = '诊断信息已复制到剪贴板';
+  result.style.color = 'var(--green)';
 });
 
 document.getElementById('copy-install-cmd').addEventListener('click', () => {
@@ -451,14 +535,30 @@ async function maybeOnboard() {
     if (step === 'install') {
       title.textContent = '第一步：安装 arkcli';
       body.innerHTML = `
-        <p>生成图片和视频依赖 arkcli。当前未检测到，请按以下步骤安装：</p>
-        <p>1. 安装 Node.js LTS 后重开终端</p>
-        <p>2. 执行 <code>npm install -g @volcengine/ark-cli</code></p>
-        <p>3. 回到这里点「重新检测」</p>
-        <p><button id="wizard-recheck" class="btn">重新检测</button> <span id="wizard-recheck-result"></span></p>`;
-      body.querySelector('#wizard-recheck').addEventListener('click', async () => {
-        const s = await api.arkcliStatus();
-        body.querySelector('#wizard-recheck-result').textContent = s.installed ? `检测到 v${s.version}` : '仍未检测到';
+        <p>生成图片和视频依赖 arkcli（运行在 Node.js 上）。点击按钮自动完成全部安装：</p>
+        <p><button id="wizard-install" class="btn primary">一键安装运行环境</button></p>
+        <div id="wizard-install-log" class="install-log hidden"></div>`;
+      body.querySelector('#wizard-install').addEventListener('click', async () => {
+        const logEl = body.querySelector('#wizard-install-log');
+        logEl.classList.remove('hidden');
+        const off = api.onSetupProgress((p) => {
+          const line = document.createElement('div');
+          line.textContent = (p.status === 'done' ? '✓ ' : '… ') + p.detail
+            + (p.percent !== undefined && p.percent !== null ? ` ${p.percent}%` : '');
+          if (p.status === 'done') line.style.color = 'var(--green)';
+          logEl.appendChild(line);
+          logEl.scrollTop = logEl.scrollHeight;
+        });
+        try {
+          await api.setupInstallAll();
+        } catch (err) {
+          const line = document.createElement('div');
+          line.style.color = 'var(--red)';
+          line.textContent = `安装失败: ${err.message}`;
+          logEl.appendChild(line);
+        } finally {
+          off();
+        }
       });
     } else if (step === 'login') {
       title.textContent = '第二步：登录火山引擎';

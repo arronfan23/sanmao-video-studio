@@ -70,6 +70,22 @@ npm test         # 注册中心 + 引擎单测
 npm run dist     # 输出 release/Sanmao Video Studio-Setup-x.y.z.msi
 ```
 
+## 发布自动更新
+
+更新通道是一个静态托管的 `version.json`（地址常量：`src/main/core/updater.js` 顶部 `UPDATE_FEED_URL`）：
+
+```json
+{
+  "version": "0.2.0",
+  "msiUrl": "https://你的托管地址/Sanmao-Video-Studio-Setup-0.2.0.msi",
+  "notes": "更新内容..."
+}
+```
+
+发版流程：改 `package.json` 版本 -> `npm run dist` 出 MSI -> 把 MSI 和 version.json
+传到同一托管位置（GitHub Releases / Gitee / TOS 均可）。客户端「检查更新」会比对版本号，
+有新版本则确认后自动下载并静默安装。
+
 ## 已知边界（P1 backlog）
 
 - 画布增强：撤销重做 / 缩放 / 小地图 / 自动布局 / 节点复制粘贴

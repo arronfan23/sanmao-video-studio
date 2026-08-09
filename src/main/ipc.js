@@ -13,6 +13,20 @@ function registerIpc(ctx) {
 
   ipcMain.handle('arkcli:login', () => ctx.arkcli.login());
 
+  // 一键环境检测 / 安装
+  ipcMain.handle('setup:check', () => ctx.installer.check());
+  ipcMain.handle('setup:installAll', async (e) => {
+    const forward = (p) => {
+      if (!e.sender.isDestroyed()) e.sender.send('setup:progress', p);
+    };
+    ctx.installer.on('progress', forward);
+    try {
+      return await ctx.installer.ensureAll();
+    } finally {
+      ctx.installer.off('progress', forward);
+    }
+  });
+
   ipcMain.handle('arkcli:profiles', () => ctx.arkcli.listProfiles());
   ipcMain.handle('arkcli:switchProfile', (_e, name) => ctx.arkcli.switchProfile(name));
 
@@ -93,6 +107,38 @@ function registerIpc(ctx) {
 
   ipcMain.handle('tasks:list', () => ctx.taskQueue.list());
   ipcMain.handle('assets:list', () => ctx.assets.list());
+
+  // 关于页：版本与诊断信息
+  ipcMain.handle('app:info', async () => {
+    const status = await ctx.arkcli.authStatus().catch(() => ({ loggedIn: false }));
+    const version = await ctx.arkcli.version();
+    return {
+      appVersion: require('../../package.json').version,
+      electron: process.versions.electron,
+      chromium: process.versions.chrome,
+      node: process.versions.node,
+      platform: `${process.platform} ${require('os').release()}`,
+      arkcli: { installed: version !== null, version, loggedIn: !!status.loggedIn },
+    };
+  });
+
+  // 自动更新：检查 -> 下载 -> 安装并退出
+  ipcMain.handle('update:check', () => ctx.updater.check());
+  ipcMain.handle('update:download', async (e, { msiUrl, version }) => {
+    const forward = (p) => {
+      if (!e.sender.isDestroyed()) e.sender.send('update:progress', p);
+    };
+    ctx.updater.on('progress', forward);
+    try {
+      return { path: await ctx.updater.download(msiUrl, version) };
+    } finally {
+      ctx.updater.off('progress', forward);
+    }
+  });
+  ipcMain.handle('update:install', (_e, { path: msiPath }) => {
+    ctx.updater.installAndQuit(msiPath, require('electron').app);
+    return { installing: true };
+  });
 
   ipcMain.handle('assets:open', async (_e, assetPath) => {
     const result = await shell.openPath(assetPath);

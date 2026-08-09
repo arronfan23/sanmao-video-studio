@@ -4,6 +4,13 @@ contextBridge.exposeInMainWorld('arkStudio', {
   listModules: () => ipcRenderer.invoke('registry:list'),
   arkcliStatus: () => ipcRenderer.invoke('arkcli:status'),
   arkcliLogin: () => ipcRenderer.invoke('arkcli:login'),
+  setupCheck: () => ipcRenderer.invoke('setup:check'),
+  setupInstallAll: () => ipcRenderer.invoke('setup:installAll'),
+  onSetupProgress: (cb) => {
+    const listener = (_e, p) => cb(p);
+    ipcRenderer.on('setup:progress', listener);
+    return () => ipcRenderer.removeListener('setup:progress', listener);
+  },
   listProfiles: () => ipcRenderer.invoke('arkcli:profiles'),
   switchProfile: (name) => ipcRenderer.invoke('arkcli:switchProfile', name),
   listResources: (modality) => ipcRenderer.invoke('arkcli:resources', modality),
@@ -23,6 +30,15 @@ contextBridge.exposeInMainWorld('arkStudio', {
   winMinimize: () => ipcRenderer.invoke('window:minimize'),
   winToggleMaximize: () => ipcRenderer.invoke('window:toggleMaximize'),
   winClose: () => ipcRenderer.invoke('window:close'),
+  appInfo: () => ipcRenderer.invoke('app:info'),
+  checkUpdate: () => ipcRenderer.invoke('update:check'),
+  downloadUpdate: (payload) => ipcRenderer.invoke('update:download', payload),
+  installUpdate: (payload) => ipcRenderer.invoke('update:install', payload),
+  onUpdateProgress: (cb) => {
+    const listener = (_e, p) => cb(p);
+    ipcRenderer.on('update:progress', listener);
+    return () => ipcRenderer.removeListener('update:progress', listener);
+  },
   getSettings: () => ipcRenderer.invoke('settings:get'),
   saveApiKey: (key) => ipcRenderer.invoke('settings:saveKey', key),
   clearApiKey: () => ipcRenderer.invoke('settings:clearKey'),
