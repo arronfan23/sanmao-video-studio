@@ -5,6 +5,7 @@ directories:
 files:
   - src/**
   - modules/**
+  - build/icon.png
   - package.json
 asarUnpack:
   - node_modules/@koromix/koffi-win32-x64/**
