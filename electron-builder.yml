@@ -9,6 +9,11 @@ files:
   - package.json
 asarUnpack:
   - node_modules/@koromix/koffi-win32-x64/**
+extraFiles:
+  - from: build/uninstaller
+    to: .
+    filter:
+      - '*.exe'
 win:
   target:
     - msi
