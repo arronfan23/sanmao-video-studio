@@ -41,7 +41,7 @@ class Updater extends EventEmitter {
         const req = https.get(u, { headers: { 'User-Agent': 'SanmaoVideoStudio-Updater' } }, (res) => {
           if (res.statusCode >= 300 && res.statusCode < 400 && res.headers.location && redirects < 5) {
             res.resume();
-            return follow(res.headers.location, redirects + 1);
+            return follow(new URL(res.headers.location, u).toString(), redirects + 1);
           }
           if (res.statusCode !== 200) {
             res.resume();
@@ -91,7 +91,7 @@ class Updater extends EventEmitter {
         const req = https.get(u, { headers: { 'User-Agent': 'SanmaoVideoStudio-Updater' } }, (res) => {
           if (res.statusCode >= 300 && res.statusCode < 400 && res.headers.location) {
             res.resume();
-            return follow(res.headers.location);
+            return follow(new URL(res.headers.location, u).toString());
           }
           if (res.statusCode !== 200) {
             res.resume();
