@@ -83,6 +83,20 @@ function createTray() {
   });
 }
 
+// 单实例锁：托盘常驻时重复点击桌面图标，不再新开进程，
+// 而是把已运行实例的窗口唤到前台
+const gotLock = app.requestSingleInstanceLock();
+if (!gotLock) {
+  app.quit();
+} else {
+app.on('second-instance', () => {
+  if (mainWindow && !mainWindow.isDestroyed()) {
+    if (mainWindow.isMinimized()) mainWindow.restore();
+    mainWindow.show();
+    mainWindow.focus();
+  }
+});
+
 app.whenReady().then(() => {
   // modules 随 asar 打包，asar 内可直接读文件/ require，统一用相对路径
   const modulesDir = path.join(__dirname, '../../modules');
@@ -112,3 +126,4 @@ app.whenReady().then(() => {
 app.on('window-all-closed', () => {
   // 托盘常驻：窗口全关也不退出，等托盘菜单显式退出
 });
+}
