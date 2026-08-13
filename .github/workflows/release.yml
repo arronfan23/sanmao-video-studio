@@ -26,6 +26,19 @@ jobs:
       - name: Build MSI
         run: npm run dist
 
+      # 自动更新通道：version.json 随 Release 发布，客户端轮询它判断新版本
+      - name: Generate version.json
+        shell: pwsh
+        run: |
+          $tag = "${{ github.ref_name }}"
+          $v = $tag.TrimStart('v')
+          $feed = @{
+            version = $v
+            msiUrl = "https://github.com/arronfan23/sanmao-video-studio/releases/download/$tag/Sanmao-Video-Studio-Setup-$v.msi"
+            notes = "详见 Release 页面"
+          } | ConvertTo-Json -Compress
+          Set-Content release/version.json $feed -Encoding utf8
+
       # ---- SignPath 代码签名（申请通过后取消注释，并配置 secrets） ----
       # - name: Sign MSI with SignPath
       #   uses: signpath/github-action-submit-signing-request@v1
@@ -48,5 +61,7 @@ jobs:
       - name: Create GitHub Release
         uses: softprops/action-gh-release@v2
         with:
-          files: release/*.msi
+          files: |
+            release/*.msi
+            release/version.json
           generate_release_notes: true

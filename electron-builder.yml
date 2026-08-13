@@ -17,7 +17,7 @@ extraFiles:
 win:
   target:
     - msi
-  artifactName: ${productName}-Setup-${version}.${ext}
+  artifactName: Sanmao-Video-Studio-Setup-${version}.${ext}
 msi:
   oneClick: false
   perMachine: false

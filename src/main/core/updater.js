@@ -9,7 +9,14 @@ const https = require('https');
 const { spawn } = require('child_process');
 
 // 更新通道地址（发布渠道定了之后改这里）
-const UPDATE_FEED_URL = 'https://github.com/sanmao-tech/sanmao-video-studio/releases/latest/download/version.json';
+const UPDATE_FEED_URL = 'https://github.com/arronfan23/sanmao-video-studio/releases/latest/download/version.json';
+
+// GitHub 直连在国内可能超时，依次尝试直连和公共加速镜像
+const MIRROR_PREFIXES = ['', 'https://ghproxy.net/', 'https://gh-proxy.com/'];
+
+function withMirrors(url) {
+  return MIRROR_PREFIXES.map((p) => (p ? p + url : url));
+}
 
 function compareVersions(a, b) {
   const pa = String(a).split('.').map(Number);
@@ -31,26 +38,41 @@ class Updater extends EventEmitter {
   _fetchJson(url) {
     return new Promise((resolve, reject) => {
       const follow = (u, redirects) => {
-        https.get(u, { headers: { 'User-Agent': 'SanmaoVideoStudio-Updater' } }, (res) => {
+        const req = https.get(u, { headers: { 'User-Agent': 'SanmaoVideoStudio-Updater' } }, (res) => {
           if (res.statusCode >= 300 && res.statusCode < 400 && res.headers.location && redirects < 5) {
             res.resume();
             return follow(res.headers.location, redirects + 1);
           }
           if (res.statusCode !== 200) {
             res.resume();
-            return reject(new Error(`更新清单不可达（HTTP ${res.statusCode}），更新通道可能尚未配置`));
+            return reject(new Error(`HTTP ${res.statusCode}`));
           }
           let body = '';
           res.on('data', (d) => (body += d));
-          res.on('end', () => { try { resolve(JSON.parse(body)); } catch { reject(new Error('更新清单格式错误')); } });
-        }).on('error', (e) => reject(new Error(`无法连接更新服务器: ${e.message}`)));
+          res.on('end', () => { try { resolve(JSON.parse(body)); } catch { reject(new Error('格式错误')); } });
+        });
+        req.setTimeout(15000, () => req.destroy(new Error('timeout')));
+        req.on('error', reject);
       };
       follow(url, 0);
     });
   }
 
+  // 直连失败时自动尝试镜像
+  async _fetchJsonWithMirrors(url) {
+    let lastErr = null;
+    for (const u of withMirrors(url)) {
+      try {
+        return await this._fetchJson(u);
+      } catch (err) {
+        lastErr = err;
+      }
+    }
+    throw new Error(`无法连接更新服务器（已尝试直连与镜像）: ${lastErr && lastErr.message}`);
+  }
+
   async check() {
-    const feed = await this._fetchJson(UPDATE_FEED_URL);
+    const feed = await this._fetchJsonWithMirrors(UPDATE_FEED_URL);
     if (!feed.version || !feed.msiUrl) throw new Error('更新清单缺少 version 或 msiUrl 字段');
     const newer = compareVersions(feed.version, this.currentVersion) > 0;
     return {
@@ -66,7 +88,7 @@ class Updater extends EventEmitter {
     return new Promise((resolve, reject) => {
       fs.mkdirSync(path.dirname(dest), { recursive: true });
       const follow = (u) => {
-        https.get(u, { headers: { 'User-Agent': 'SanmaoVideoStudio-Updater' } }, (res) => {
+        const req = https.get(u, { headers: { 'User-Agent': 'SanmaoVideoStudio-Updater' } }, (res) => {
           if (res.statusCode >= 300 && res.statusCode < 400 && res.headers.location) {
             res.resume();
             return follow(res.headers.location);
@@ -85,7 +107,9 @@ class Updater extends EventEmitter {
           res.pipe(file);
           file.on('finish', () => file.close(resolve));
           file.on('error', reject);
-        }).on('error', reject);
+        });
+        req.setTimeout(30000, () => req.destroy(new Error('timeout')));
+        req.on('error', reject);
       };
       follow(url);
     });
@@ -93,8 +117,16 @@ class Updater extends EventEmitter {
 
   async download(msiUrl, version) {
     const dest = path.join(this.downloadDir, `Sanmao-Video-Studio-Setup-${version}.msi`);
-    await this._download(msiUrl, dest, (p) => this.emit('progress', { phase: 'download', percent: p }));
-    return dest;
+    let lastErr = null;
+    for (const u of withMirrors(msiUrl)) {
+      try {
+        await this._download(u, dest, (p) => this.emit('progress', { phase: 'download', percent: p }));
+        return dest;
+      } catch (err) {
+        lastErr = err;
+      }
+    }
+    throw new Error(`下载失败（已尝试直连与镜像）: ${lastErr && lastErr.message}`);
   }
 
   // 启动 MSI 安装（/passive 会显示进度并请求 UAC），随后退出当前应用
