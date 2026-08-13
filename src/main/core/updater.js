@@ -6,7 +6,13 @@ const { EventEmitter } = require('events');
 const fs = require('fs');
 const path = require('path');
 const https = require('https');
+const http = require('http');
 const { spawn } = require('child_process');
+
+// 按 URL 协议选择客户端（生产全是 https，本地测试允许 http）
+function clientFor(u) {
+  return u.startsWith('http:') ? http : https;
+}
 
 // 更新通道地址（发布渠道定了之后改这里）
 const UPDATE_FEED_URL = 'https://github.com/arronfan23/sanmao-video-studio/releases/latest/download/version.json';
@@ -15,6 +21,8 @@ const UPDATE_FEED_URL = 'https://github.com/arronfan23/sanmao-video-studio/relea
 const MIRROR_PREFIXES = ['', 'https://ghproxy.net/', 'https://gh-proxy.com/'];
 
 function withMirrors(url) {
+  // 只对 GitHub 域名套镜像，其他地址（含本地测试服务）直连
+  if (!/^https:\/\/(github\.com|objects\.githubusercontent\.com)\//.test(url)) return [url];
   return MIRROR_PREFIXES.map((p) => (p ? p + url : url));
 }
 
@@ -38,7 +46,7 @@ class Updater extends EventEmitter {
   _fetchJson(url) {
     return new Promise((resolve, reject) => {
       const follow = (u, redirects) => {
-        const req = https.get(u, { headers: { 'User-Agent': 'SanmaoVideoStudio-Updater' } }, (res) => {
+        const req = clientFor(u).get(u, { headers: { 'User-Agent': 'SanmaoVideoStudio-Updater' } }, (res) => {
           if (res.statusCode >= 300 && res.statusCode < 400 && res.headers.location && redirects < 5) {
             res.resume();
             return follow(new URL(res.headers.location, u).toString(), redirects + 1);
@@ -87,31 +95,59 @@ class Updater extends EventEmitter {
   _download(url, dest, onProgress) {
     return new Promise((resolve, reject) => {
       fs.mkdirSync(path.dirname(dest), { recursive: true });
-      const follow = (u) => {
-        const req = https.get(u, { headers: { 'User-Agent': 'SanmaoVideoStudio-Updater' } }, (res) => {
+      // 断点续传：已下载的部分写入临时文件，换源/重试时从断点继续
+      let existing = 0;
+      try { existing = fs.statSync(dest).size; } catch {}
+      const follow = (u, redirects) => {
+        const headers = { 'User-Agent': 'SanmaoVideoStudio-Updater' };
+        if (existing > 0) headers.Range = `bytes=${existing}-`;
+        const req = clientFor(u).get(u, { headers }, (res) => {
           if (res.statusCode >= 300 && res.statusCode < 400 && res.headers.location) {
             res.resume();
-            return follow(new URL(res.headers.location, u).toString());
+            if (redirects >= 5) { res.resume(); return reject(new Error('重定向过多')); }
+            return follow(new URL(res.headers.location, u).toString(), (redirects || 0) + 1);
           }
-          if (res.statusCode !== 200) {
+          // 416：断点超出文件末尾（比如上次其实已下完），删掉重下
+          if (res.statusCode === 416 && existing > 0) {
+            res.resume();
+            try { fs.unlinkSync(dest); } catch {}
+            existing = 0;
+            return follow(u, 0);
+          }
+          const resumed = res.statusCode === 206;
+          if (res.statusCode !== 200 && !resumed) {
             res.resume();
             return reject(new Error(`下载失败 HTTP ${res.statusCode}`));
           }
-          const total = Number(res.headers['content-length']) || 0;
-          let got = 0;
-          const file = fs.createWriteStream(dest);
+          // 服务器忽略 Range 返回 200：从头下，截断旧文件
+          if (!resumed) existing = 0;
+          const total = (Number(res.headers['content-length']) || 0) + existing;
+          let got = existing;
+          const file = fs.createWriteStream(dest, { flags: resumed ? 'a' : 'w' });
+          // 停滞检测：连续 30 秒收不到数据才判定失败换源，慢速不算失败
+          let stallTimer = null;
+          const armStall = () => {
+            clearTimeout(stallTimer);
+            stallTimer = setTimeout(() => req.destroy(new Error('下载停滞')), 30000);
+          };
+          armStall();
           res.on('data', (chunk) => {
             got += chunk.length;
-            if (total) onProgress(Math.round((got / total) * 100));
+            armStall();
+            if (total) onProgress(Math.min(99, Math.round((got / total) * 100)));
           });
           res.pipe(file);
-          file.on('finish', () => file.close(resolve));
-          file.on('error', reject);
+          file.on('finish', () => {
+            clearTimeout(stallTimer);
+            file.close(() => { onProgress(100); resolve(); });
+          });
+          const fail = (e) => { clearTimeout(stallTimer); file.destroy(); reject(e); };
+          file.on('error', fail);
+          res.on('error', fail);
         });
-        req.setTimeout(30000, () => req.destroy(new Error('timeout')));
         req.on('error', reject);
       };
-      follow(url);
+      follow(url, 0);
     });
   }
 
