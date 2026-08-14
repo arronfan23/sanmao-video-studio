@@ -299,7 +299,7 @@ document.getElementById('check-update').addEventListener('click', async () => {
       return;
     }
     const notes = r.notes ? `\n更新内容：${r.notes}` : '';
-    const ok = await showConfirm(`发现新版本 v${r.latest}（当前 v${r.current}）。${notes}\n现在下载并安装？`);
+    const ok = await showConfirm(`发现新版本 v${r.latest}（当前 v${r.current}）。${notes}\n现在下载并安装？`, { confirmLabel: '下载并安装', danger: false });
     if (!ok) { result.textContent = '已取消更新'; return; }
     const off = api.onUpdateProgress((p) => {
       result.textContent = `下载更新包 v${r.latest}... ${p.percent}%`;
@@ -477,11 +477,16 @@ function assetRow(a) {
 }
 
 // 应用内圆角确认弹窗（替代系统 confirm）
-function showConfirm(text) {
+function showConfirm(text, { confirmLabel = '确认删除', cancelLabel = '取消', danger = true } = {}) {
   return new Promise((resolve) => {
     const modal = document.getElementById('confirm-modal');
     document.getElementById('confirm-text').textContent = text;
     modal.classList.remove('hidden');
+    const okBtn = document.getElementById('confirm-ok');
+    okBtn.textContent = confirmLabel;
+    okBtn.classList.toggle('modal-danger', danger);
+    okBtn.classList.toggle('primary', !danger);
+    document.getElementById('confirm-cancel').textContent = cancelLabel;
     const done = (v) => {
       modal.classList.add('hidden');
       document.getElementById('confirm-ok').onclick = null;
