@@ -167,9 +167,13 @@ class Updater extends EventEmitter {
 
   // 启动 MSI 安装（/passive 会显示进度并请求 UAC），随后退出当前应用
   installAndQuit(msiPath, app) {
-    const child = spawn('msiexec', ['/i', msiPath, '/passive', '/norestart'], {
+    // 装完自动拉起新版：脱离的 cmd 等 msiexec 结束后再启动 exe，本体可先退出
+    const exe = process.execPath;
+    const cmd = `start "" /wait msiexec /i "${msiPath}" /passive /norestart && start "" "${exe}"`;
+    const child = spawn('cmd', ['/c', cmd], {
       detached: true,
       stdio: 'ignore',
+      windowsHide: true,
       env: process.env,
     });
     child.unref();
