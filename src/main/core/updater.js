@@ -177,7 +177,7 @@ class Updater extends EventEmitter {
       env: process.env,
     });
     child.unref();
-    setTimeout(() => app.quit(), 1500);
+    setTimeout(() => app.exit(0), 1500); // 用 exit 而非 quit：quit 会被托盘的 close 拦截挡住
   }
 }
 
