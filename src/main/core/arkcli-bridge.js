@@ -229,12 +229,16 @@ function normalizeAuth(data) {
   if (data.logged_in === true || data.ok === true) {
     const profile = data.active_profile || null;
     const identity = (data.volc_sso && data.volc_sso.identity) || null;
+    const cpa = data.control_plane_auth || null;
     return {
       loggedIn: true,
       profile: profile ? profile.name : null,
       profileType: profile ? profile.type : null,
       account: identity ? identity.name : null,
       ssoRemaining: data.volc_sso ? data.volc_sso.remaining : null,
+      // SSO 续期失败时 logged_in 仍为 true（本地 key 兜底），但控制面已不可用
+      needsLogin: !!(cpa && cpa.status === 'needs_login'),
+      controlPlaneReason: cpa ? cpa.reason : null,
     };
   }
   return { loggedIn: false };

@@ -29,6 +29,10 @@ async function refreshArkcliStatus() {
     footer.className = 'arkcli-status err';
     footer.innerHTML = '<span class="status-dot"></span><span>Ark CLI 未安装</span>';
     footer.removeAttribute('data-tip');
+  } else if (s.auth.loggedIn && s.auth.needsLogin) {
+    footer.className = 'arkcli-status err';
+    footer.innerHTML = '<span class="status-dot" style="background:var(--amber)"></span><span>Ark CLI 登录已过期</span>';
+    footer.setAttribute('data-tip', 'SSO 授权已过期，请到设置页重新登录');
   } else if (!s.auth.loggedIn) {
     footer.className = 'arkcli-status err';
     footer.innerHTML = '<span class="status-dot"></span><span>Ark CLI 未登录</span>';
@@ -174,6 +178,10 @@ function renderArkcliCard(s) {
     guideBtn.classList.remove('hidden');
   } else if (!s.auth.loggedIn) {
     stateEl.innerHTML = `<span style="color:var(--amber)">已安装 v${s.version} · 未登录</span>`;
+    loginBtn.classList.remove('hidden');
+    guideBtn.classList.add('hidden');
+  } else if (s.auth.needsLogin) {
+    stateEl.innerHTML = `<span style="color:var(--amber)">已安装 v${s.version} · 登录已过期（SSO 续期失败），模型列表/生成不可用，请重新登录</span>`;
     loginBtn.classList.remove('hidden');
     guideBtn.classList.add('hidden');
   } else {
